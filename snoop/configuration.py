@@ -120,8 +120,10 @@ class Config(object):
             color = False
 
         self.write = get_write_function(out, overwrite)
+        self.raw_events = []
         self.formatter = formatter_class(prefix, columns, color)
         self.enabled = enabled
+        self.raw_events_file = raw_events_file
 
         if pformat is None:
             try:

@@ -172,6 +172,16 @@ class Event(object):
             if opname not in ('RESUME', 'CACHE'):
                 return opname == 'YIELD_VALUE'
 
+    def to_json(self):
+        return {
+            "event": self.event,
+            "arg": self.arg,
+            "depth": self.depth,
+            "filename": self.source.filename,
+            "variables": self.variables,
+            "line_no": self.line_no,
+        }
+
 
 class DefaultFormatter(object):
     datetime_format = None

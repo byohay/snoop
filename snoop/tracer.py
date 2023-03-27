@@ -1,5 +1,6 @@
 import functools
 import inspect
+import json
 import os
 import re
 import sys
@@ -218,9 +219,16 @@ class Tracer(object):
         calling_frame = sys._getframe(context + 1)
         if not (PY34 and previous_trace is None):
             calling_frame.f_trace = previous_trace
-        self.trace(calling_frame, 'exit', None)
+        self.trace(calling_frame, "exit", None)
         self.target_frames.discard(calling_frame)
         self.frame_infos.pop(calling_frame, None)
+
+        if self.config.raw_events_file is not None:
+            file = open(self.config.raw_events_file, 'w')
+            events_json = (
+                json.dumps([event.to_json() for event in self.config.raw_events], indent=2)
+            )
+            file.write(events_json)
 
     def _is_internal_frame(self, frame):
         return frame.f_code.co_filename.startswith(internal_directories)
@@ -257,6 +265,7 @@ class Tracer(object):
             line_no = frame_info.last_line_no
             trace_event = Event(frame_info, event, arg, thread_local.depth, line_no=line_no)
             line = self.config.formatter.format_line_only(trace_event)
+            self.config.raw_events += [trace_event]
             self.config.write(line)
 
         if event == 'exception':
@@ -279,6 +288,7 @@ class Tracer(object):
 
         formatted = self.config.formatter.format(trace_event)
         self.config.write(formatted)
+        self.config.raw_events += [trace_event]
 
         return self.trace
 
